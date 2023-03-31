@@ -3,6 +3,9 @@ import { initializeApp } from "firebase/app";
 import { collection, doc, getDoc, getDocs, getFirestore, orderBy, query } from "firebase/firestore";
 const app = express();
 import cors from 'cors'
+import * as dotenv from 'dotenv'
+
+dotenv.config();
 
 
 const firebaseConfig = {
