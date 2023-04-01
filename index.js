@@ -1,12 +1,11 @@
 import express from "express";
 import { initializeApp } from "firebase/app";
-import { collection, doc, getDoc, getDocs, getFirestore, orderBy, query } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, getFirestore, limit, orderBy, query, where } from "firebase/firestore";
 const app = express();
 import cors from 'cors'
 import * as dotenv from 'dotenv'
 
 dotenv.config();
-
 
 const firebaseConfig = {
     apiKey: process.env.FIREBASE_API_KEY,
@@ -27,7 +26,7 @@ const db = getFirestore(fire);
 app.use(cors())
 
 // Definisci una rotta per recuperare tutti i prodotti dal database
-app.get("/api/products", async (req, res) => {
+app.get("/products", async (req, res) => {
 
     try {
         console.log("Richiesta ricevuta", req);
@@ -48,7 +47,7 @@ app.get("/api/products", async (req, res) => {
 });
 
 // Definisci una rotta per recuperare un singolo prodotto dal database
-app.get("/api/products/:id", async (req, res) => {
+app.get("/products/:id", async (req, res) => {
     try {
         const docRef = doc(db, "products", req.params.id);
         const docSnap = await getDoc(docRef);
@@ -66,9 +65,60 @@ app.get("/api/products/:id", async (req, res) => {
     }
 });
 
+app.get("/bestseller", async (req, res) => {
+    try {
+        console.log("Richiesta ricevuta", req);
+        const products = [];
+        const querySnapshot = await getDocs(
+            query(
+                collection(db, "products"),
+                where("rating", ">=", 4.5),
+                orderBy("rating", "desc"),
+                limit(4)
+            )
+        );
+        querySnapshot.forEach((doc) => {
+            products.push({
+                id: doc.id,
+                ...doc.data(),
+            });
+        });
+        res.json(products);
+    } catch (error) {
+        console.error("Errore durante il recupero dei prodotti bestseller:", error);
+        res.status(500).json({ error: "Errore durante il recupero dei prodotti bestseller" });
+    }
+});
+
+app.get("/latest", async (req, res) => {
+    console.log("Richiesta ricevuta", req);
+    try {
+        const products = [];
+        const querySnapshot = await getDocs(
+            query(
+                collection(db, "products"),
+                orderBy("id", "desc"),
+                limit(4)
+            )
+        );
+        querySnapshot.forEach((doc) => {
+            products.push({
+                id: doc.id,
+                ...doc.data(),
+            });
+        });
+        res.json(products);
+    } catch (error) {
+        console.error("Errore durante il recupero dei prodotti più recenti:", error);
+        res.status(500).json({ error: "Errore durante il recupero dei prodotti più recenti" });
+    }
+});
+
+
 
 // Avvia il server
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
     console.log(`Server avviato sulla porta ${port}`);
 });
+
