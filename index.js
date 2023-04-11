@@ -97,7 +97,7 @@ app.get("/latest", async (req, res) => {
         const querySnapshot = await getDocs(
             query(
                 collection(db, "products"),
-                orderBy("id", "desc"),
+                orderBy("timestamp", "desc"),
                 limit(4)
             )
         );
