@@ -31,13 +31,14 @@ app.get("/products", async (req, res) => {
     try {
         console.log("Richiesta ricevuta", req);
         const products = [];
-        const querySnapshot = await getDocs(collection(db, "products"));
+        const querySnapshot = await getDocs(query(collection(db, "products"), orderBy("title")));
         querySnapshot.forEach((doc) => {
             products.push({
                 id: doc.id,
                 ...doc.data(),
             });
         });
+
         res.json(products);
     } catch (error) {
         console.error("Errore durante il recupero dei prodotti:", error);
