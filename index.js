@@ -25,11 +25,11 @@ const db = getFirestore(fire);
 
 app.use(cors())
 
-// Definisci una rotta per recuperare tutti i prodotti dal database
+// Define a route to get all products from the database
 app.get("/products", async (req, res) => {
 
     try {
-        console.log("Richiesta ricevuta", req);
+        console.log("Request received", req);
         const products = [];
         const querySnapshot = await getDocs(query(collection(db, "products"), orderBy("title")));
         querySnapshot.forEach((doc) => {
@@ -41,18 +41,18 @@ app.get("/products", async (req, res) => {
 
         res.json(products);
     } catch (error) {
-        console.error("Errore durante il recupero dei prodotti:", error);
-        res.status(500).json({ error: "Errore durante il recupero dei prodotti" });
+        console.error("Error while retrieving products:", error);
+        res.status(500).json({ error: "Error while retrieving products" });
     }
 });
 
-// Definisci una rotta per recuperare un singolo prodotto dal database
+// Define a route to get a single product from the database
 app.get("/products/:id", async (req, res) => {
     try {
         const docRef = doc(db, "products", req.params.id);
         const docSnap = await getDoc(docRef);
         if (!docSnap.exists()) {
-            res.status(404).json({ error: "Prodotto non trovato" });
+            res.status(404).json({ error: "Product not found" });
         } else {
             res.json({
                 id: docSnap.id,
@@ -60,14 +60,14 @@ app.get("/products/:id", async (req, res) => {
             });
         }
     } catch (error) {
-        console.error("Errore durante il recupero del prodotto:", error);
-        res.status(500).json({ error: "Errore durante il recupero del prodotto" });
+        console.error("Error while retrieving product:", error);
+        res.status(500).json({ error: "Error while retrieving product" });
     }
 });
 
 app.get("/bestseller", async (req, res) => {
     try {
-        console.log("Richiesta ricevuta", req);
+        console.log("Request received", req);
         const products = [];
         const querySnapshot = await getDocs(
             query(
@@ -85,13 +85,13 @@ app.get("/bestseller", async (req, res) => {
         });
         res.json(products);
     } catch (error) {
-        console.error("Errore durante il recupero dei prodotti bestseller:", error);
-        res.status(500).json({ error: "Errore durante il recupero dei prodotti bestseller" });
+        console.error("Error while retrieving bestseller products:", error);
+        res.status(500).json({ error: "Error while retrieving bestseller products" });
     }
 });
 
 app.get("/latest", async (req, res) => {
-    console.log("Richiesta ricevuta", req);
+    console.log("Request received", req);
     try {
         const products = [];
         const querySnapshot = await getDocs(
@@ -109,16 +109,41 @@ app.get("/latest", async (req, res) => {
         });
         res.json(products);
     } catch (error) {
-        console.error("Errore durante il recupero dei prodotti più recenti:", error);
-        res.status(500).json({ error: "Errore durante il recupero dei prodotti più recenti" });
+        console.error("Error retrieving latest products:", error);
+        res.status(500).json({ error: "Error retrieving latest products" });
+    }
+});
+
+app.post('/newsletter', async (req, res) => {
+    const { email } = req.body;
+
+    // Check if email already exists in database
+    const querySnapshot = await getDocs(
+        query(collection(db, "emails"), where("email", "==", email))
+    );
+
+    if (!querySnapshot.empty) {
+        res.status(400).send("This email is already registered.");
+        return;
+    }
+
+    try {
+        const docRef = await addDoc(collection(db, "emails"), {
+            email,
+            timestamp: serverTimestamp(),
+        });
+        console.log("Email saved to database with ID: ", docRef.id);
+        res.json({ message: "Email saved successfully" })
+    } catch (error) {
+        console.error("Error saving email: ", error);
+        res.status(500).json({ error: "Error saving email" });
     }
 });
 
 
 
-// Avvia il server
+// Start the server
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
-    console.log(`Server avviato sulla porta ${port}`);
+    console.log(`Server started on port ${port}`);
 });
-
