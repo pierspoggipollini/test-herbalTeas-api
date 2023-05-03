@@ -1,9 +1,12 @@
 import express from "express";
 import { initializeApp } from "firebase/app";
-import { collection, doc, getDoc, getDocs, getFirestore, limit, orderBy, query, where } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, getFirestore, limit, orderBy, query, serverTimestamp, where } from "firebase/firestore";
 const app = express();
 import cors from 'cors'
 import * as dotenv from 'dotenv'
+import bodyParser from "body-parser";
+
+app.use(bodyParser.json());
 
 dotenv.config();
 
@@ -122,7 +125,7 @@ app.post('/newsletter', async (req, res) => {
         query(collection(db, "emails"), where("email", "==", email))
     );
 
-    if (!querySnapshot.empty) {
+  if (!querySnapshot.empty) {
         res.status(400).send("This email is already registered.");
         return;
     }
@@ -133,7 +136,7 @@ app.post('/newsletter', async (req, res) => {
             timestamp: serverTimestamp(),
         });
         console.log("Email saved to database with ID: ", docRef.id);
-        res.json({ message: "Email saved successfully" })
+        res.status(200).json({ message: "Email saved successfully" })
     } catch (error) {
         console.error("Error saving email: ", error);
         res.status(500).json({ error: "Error saving email" });
