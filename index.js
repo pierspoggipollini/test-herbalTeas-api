@@ -150,12 +150,13 @@ app.post('/promotional-code', async (req, res) => {
     try {
         const currentDate = new Date();
 
+        console.log(currentDate)
         const promoCodesRef = collection(db, 'Promo Codes');
         const querySnapshot = await getDocs(
             query(promoCodesRef)
-                .where('code', '==', code) // Filter promotional codes for the specified code
-                .where('startDate', '<=', currentDate) // Filter promotional codes with a start date less than or equal to the current date
-                .where('endDate', '>=', currentDate) // Filter promotional codes with an end date greater than or equal to the current date
+                ,where('code', '==', code) // Filter promotional codes for the specified code
+                ,where('startDate', '<=', currentDate) // Filter promotional codes with a start date less than or equal to the current date
+                ,where('endDate', '>=', currentDate) // Filter promotional codes with an end date greater than or equal to the current date
         );
 
         if (querySnapshot.empty) {
