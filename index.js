@@ -162,7 +162,12 @@ app.post('/promotional-code', async (req, res) => {
         if (querySnapshot.empty) {
             res.status(404).json({ error: 'Invalid promotional code' });
         } else {
-            res.status(200).json({ valid: true });
+            let discount;
+            querySnapshot.forEach((doc) => {
+                const promoCodeData = doc.data();
+                discount = promoCodeData.discount;
+            });
+            res.status(200).json({ valid: true, discount });
         }
     } catch (error) {
         console.error('Error while verifying the promotional code:', error);
