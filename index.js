@@ -1,6 +1,6 @@
 import express from "express";
 import { initializeApp } from "firebase/app";
-import { addDoc, collection, doc, getDoc, getDocs, getFirestore, limit, orderBy, query, serverTimestamp, where } from "firebase/firestore";
+import { addDoc, collection, doc, documentId, getDoc, getDocs, getFirestore, limit, orderBy, query, serverTimestamp, where } from "firebase/firestore";
 const app = express();
 import cors from 'cors'
 import * as dotenv from 'dotenv'
@@ -144,27 +144,66 @@ app.post('/newsletter', async (req, res) => {
 });
 
 
+/* app.post('/promotional-code', async (req, res) => {
+    const { code } = req.body;
+
+    try {
+        const currentDate = new Date();
+        const currentDateStr = currentDate.toISOString().substring(0, 10);
+
+        console.log(currentDateStr)
+
+        const promoCodesRef = collection(db, 'Promo Codes');
+        const querySnapshot = await getDocs(promoCodesRef);
+
+        let promoCodeData;
+
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+
+            if (data.code === code && data.startDate <= currentDateStr && data.endDate >= currentDateStr) {
+                promoCodeData = data;
+            }
+        });
+
+        if (!promoCodeData) {
+            res.status(404).json({ error: 'Invalid promotional code' });
+        } else {
+            const { discount, startDate, endDate } = promoCodeData;
+            res.status(200).json({ valid: true, discount, code, startDate, endDate });
+        }
+    } catch (error) {
+        console.error('Error while verifying the promotional code:', error);
+        res.status(500).json({ error: 'Error while verifying the promotional code' });
+    }
+}); */
+
 app.post('/promotional-code', async (req, res) => {
     const { code } = req.body;
 
     try {
         const currentDate = new Date();
+        const currentDateStr = currentDate.toISOString().substring(0, 10);
 
-        console.log(currentDate)
+        console.log(currentDateStr);
+
         const promoCodesRef = collection(db, 'Promo Codes');
+
+        //Get the date from the collection where the code is equal to the code in collection
         const querySnapshot = await getDocs(
-            query(promoCodesRef)
-                ,where('code', '==', code) // Filter promotional codes for the specified code
-                ,where('startDate', '<=', currentDate) // Filter promotional codes with a start date less than or equal to the current date
-                ,where('endDate', '>=', currentDate) // Filter promotional codes with an end date greater than or equal to the current date
+            query(promoCodesRef, where('code', '==', code))
         );
 
-        if (querySnapshot.empty) {
+        // Filter the querySnapshot based on startDate and endDate conditions
+        const promoCodeData = querySnapshot.docs
+            .filter(doc => doc.data().startDate <= currentDateStr)
+            .filter(doc => doc.data().endDate >= currentDateStr)[0]?.data();
+
+        if (!promoCodeData) {
             res.status(404).json({ error: 'Invalid promotional code' });
         } else {
-            const doc = querySnapshot.docs[0];
-            const promoCodeData = doc.data();
-            const discount = promoCodeData.discount;
+            const { discount } = promoCodeData;
+            console.log(discount);
             res.status(200).json({ valid: true, discount });
         }
     } catch (error) {
@@ -172,9 +211,6 @@ app.post('/promotional-code', async (req, res) => {
         res.status(500).json({ error: 'Error while verifying the promotional code' });
     }
 });
-
-
-
 
 
 
